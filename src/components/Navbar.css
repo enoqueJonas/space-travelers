@@ -41,3 +41,11 @@ ul {
     color: lightskyblue;
     text-decoration: none;
 }
+
+.nav-missions .active {
+    text-decoration: underline;
+}
+
+.nav-profile .active {
+    text-decoration: underline;
+}

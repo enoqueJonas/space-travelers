@@ -1,4 +1,5 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 import logo from '../assets/planet.png'
 import './Navbar.css'
 
@@ -11,11 +12,11 @@ const Navbar = () => {
             </a>
             <ul className="nav-menu">
                 <li className="nav-item">
-                    <a href="" className="nav-link"> Missions </a>
+                    <NavLink className="nav-link" to="/"> Missions</NavLink>
                 </li>
                 <li className="separator"> | </li>
                 <li className="nav-item">
-                    <a href="" className="nav-link"> My Profile </a>
+                    <NavLink className="nav-link" to="/myprofile"> My Profile </NavLink>
                 </li>
             </ul>
         </nav>
