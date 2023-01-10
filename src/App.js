@@ -5,7 +5,6 @@ import Missions from './pages/Missions.jsx';
 import MyProfile from './pages/MyProfile.jsx';
 import Navbar from './components/Navbar.jsx';
 
-
 function App() {
   return (
     <div className='wrapper'>
