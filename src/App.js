@@ -4,7 +4,9 @@ import Navbar from './components/Navbar.jsx';
 
 function App() {
   return (
-    <Navbar/>
+    <div className='wrapper'>
+      <Navbar/>
+    </div>
   );
 }
 

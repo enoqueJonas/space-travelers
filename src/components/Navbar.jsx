@@ -1,11 +1,12 @@
 import React from "react";
 import logo from '../assets/planet.png'
+import './Navbar.css'
 
 const Navbar = () => {
     return(
         <nav className="nav-bar">
-            <a> 
-                <img src={logo} width='50px' height='50px' className="logo"/>
+            <a className="logo">  
+                <img src={logo} width='50px' height='50px'/>
                 <span>Space Traveler's Hub</span>
             </a>
             <ul className="nav-menu">
