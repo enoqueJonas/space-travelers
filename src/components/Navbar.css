@@ -49,3 +49,7 @@ ul {
 .nav-profile .active {
     text-decoration: underline;
 }
+
+nav .nav-link.active {
+    text-decoration: underline;
+}
