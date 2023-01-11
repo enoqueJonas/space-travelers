@@ -15,7 +15,8 @@ const Missions = () => {
 
   const missions = useSelector(state => state)
   return (
-    <Table striped responsive>
+   <div className='table-wrapper'>
+     <Table striped responsive>
       <thead>
         <tr>
           <th>Mission</th>
@@ -51,6 +52,7 @@ const Missions = () => {
         ))}
       </tbody>
     </Table>
+   </div>
   )
 }
 
