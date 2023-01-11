@@ -10,8 +10,8 @@ function App() {
     <div className='wrapper'>
       <Navbar/>
       <Routes>
-        <Route exact path='/' element={Missions}/>
-        <Route path='/myprofile' element={MyProfile}/>
+        <Route exact path='/' element={<Missions/>}/>
+        <Route path='/myprofile' element={<MyProfile/>}/>
       </Routes>
     </div>
   );
