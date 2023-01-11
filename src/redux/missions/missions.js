@@ -5,8 +5,14 @@ const missionsReducer = (state = [], action) => {
 
     switch(type){
         case `${MISSIONS_RETRIEVED}/fulfilled`:
-            console.log(payload);
-            return payload;
+            return payload.map((mission) => {
+                const {mission_id, mission_name, description} = mission;
+                return {
+                    mission_id,
+                    mission_name,
+                    description
+                }
+            });
         default:
             return state;
     }
