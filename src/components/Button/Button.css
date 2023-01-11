@@ -1,16 +1,16 @@
 button {
-    width: 100px;
-    height: 30px;
+  width: 100px;
+  height: 30px;
 }
 
 .danger {
-    background-color: transparent;
-    border: 1px solid red;
-    color: red;
+  background-color: transparent;
+  border: 1px solid red;
+  color: red;
 }
 
 .secondary {
-    background-color: transparent;
-    border: 1px solid rgba(0, 0, 0, .8);
-    color: rgba(0, 0, 0, .8);
+  background-color: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  color: rgba(0, 0, 0, 0.8);
 }
