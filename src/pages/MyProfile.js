@@ -8,8 +8,8 @@ const MyProfile = () => {
 
   return (
     <div className='my-profile-wrapper'>
-      <h2>My Missions</h2>
-      <Table striped responsive>
+      <h2 className='my-missions-title'>My Missions</h2>
+      <Table striped responsive bordered className='table-profile'>
         <thead></thead>
         <tbody>
           {missions.map((mission) => (

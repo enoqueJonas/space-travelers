@@ -8,3 +8,11 @@ body {
   align-items: flex-start;
   width: 95%;
 }
+
+.table-profile {
+  width: 30em;
+}
+
+.my-missions-title {
+  margin: 20px 0;
+}

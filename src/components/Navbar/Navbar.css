@@ -39,9 +39,11 @@ ul {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
-  width: 13em;
+  justify-content: center;
+  width: 15em;
   gap: 10px;
+  margin-right: 10px;
+  margin-bottom: 0;
 }
 
 .nav-link-mine {
@@ -50,7 +52,6 @@ ul {
   width: 200px;
   height: 70px;
   padding: 0;
-  margin-right: 20px;
 }
 
 .nav-missions .active {
