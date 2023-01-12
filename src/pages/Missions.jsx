@@ -3,8 +3,8 @@ import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import getMissions from '../redux/missions/missions-api'
 import { Table } from 'react-bootstrap'
-import Button from '../components/Button/Button.jsx'
-import Badge from '../components/Badge/Badge.jsx'
+import Button from '../components/Buttons/Button.jsx'
+import Badge from '../components/Badges/Badge.jsx'
 import { missionJoined, missionLeft } from '../redux/missions/missions'
 
 const Missions = () => {
@@ -18,12 +18,14 @@ const Missions = () => {
     if (target.className == 'secondary') {
       dispatch(missionJoined(target.id))
     } else {
-      dispatch(missionLeft(target));
+      dispatch(missionLeft(target))
     }
   }
 
   const missions = useSelector(state => state)
-  console.log(missions)
+
+  useEffect(() => {}, [missions])
+
   return (
     <div className='table-wrapper'>
       <Table striped responsive>
@@ -41,24 +43,10 @@ const Missions = () => {
               <td>{miss.name}</td>
               <td>{miss.description}</td>
               <td>
-                <Badge
-                  props={
-                    i % 2 === 0
-                      ? { type: 'active-member', text: 'Active Member' }
-                      : { type: 'not-active-member', text: 'Not A Member' }
-                  }
-                />
+                <Badge mission={miss} />
               </td>
               <td>
-                <Button
-                  props={
-                    i % 2 === 0
-                      ? { type: 'secondary', text: 'Join Mission' }
-                      : { type: 'danger', text: 'Leave Mission' }
-                  }
-                  id={miss.id}
-                  addhandleClick={handleClick}
-                />
+                <Button mission={miss} addHandleClick={handleClick} />
               </td>
             </tr>
           ))}

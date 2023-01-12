@@ -1,20 +1,21 @@
 import React from 'react'
 import './Button.css'
 
-const Button = props => {
+const JoinMissionButton = props => {
   const handleClick = e => {
     props.addhandleClick(e.target)
   }
 
   return (
     <button
-      className={props.props.type === 'danger' ? 'danger' : 'secondary'}
-      id={props.id}
+      className='secondary'
+      id={props.mission.id}
       onClick={handleClick}
     >
-      {props.props.text}
+      Join Mission
     </button>
   )
 }
 
-export default Button
+
+export default JoinMissionButton;
