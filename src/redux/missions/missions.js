@@ -17,20 +17,18 @@ const missionsReducer = (state = [], action) => {
     case MISSION_JOINED:
       return state.map((mission) => {
         if (payload === mission.id) {
-          return {...mission, reserved: true };
+          return { ...mission, reserved: true };
         }
         return mission;
-      })
+      });
     default:
       return state;
   }
 };
 
-export const missionJoined = (missionID) => {
-  return {
-    type: MISSION_JOINED,
-    payload: missionID
-  }
-}
+export const missionJoined = (missionID) => ({
+  type: MISSION_JOINED,
+  payload: missionID,
+});
 
 export default missionsReducer;
