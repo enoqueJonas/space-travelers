@@ -16,16 +16,23 @@ ul {
   border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
 
+.top {
+  display: flex;
+  align-items: center;
+  width: 25em;
+  gap: 10px;
+}
+
 .logo {
   display: flex;
   flex-direction: row;
   align-items: center;
-  width: 21em;
-  gap: 10px;
+  margin-left: 14px;
 }
 
-.logo span {
+.nav-title {
   font-size: 1.8em;
+  color: rgb(0, 0, 0);
 }
 
 .nav-menu {
@@ -33,13 +40,17 @@ ul {
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  width: 11em;
-  gap: 15px;
+  width: 13em;
+  gap: 10px;
 }
 
-.nav-link {
+.nav-link-mine {
   color: lightskyblue;
   text-decoration: none;
+  width: 200px;
+  height: 70px;
+  padding: 0;
+  margin-right: 20px;
 }
 
 .nav-missions .active {

@@ -25,10 +25,10 @@ const missionsReducer = (state = [], action) => {
     case MISSION_LEFT:
       return state.map((mission) => {
         if (payload.className === 'danger' && payload.id === mission.id) {
-          return { ...mission, reserved: false }
+          return { ...mission, reserved: false };
         }
         return mission;
-      })
+      });
     default:
       return state;
   }

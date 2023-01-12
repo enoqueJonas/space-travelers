@@ -1,10 +1,10 @@
-import React from 'react'
-import './Button.css'
+import React from 'react';
+import './Button.css';
 
-const LeaveMissionButton = props => {
-  const handleClick = e => {
-    props.addhandleClick(e.target)
-  }
+const LeaveMissionButton = (props) => {
+  const handleClick = (e) => {
+    props.addhandleClick(e.target);
+  };
 
   return (
     <button
@@ -14,8 +14,7 @@ const LeaveMissionButton = props => {
     >
       Leave Mission
     </button>
-  )
-}
-
+  );
+};
 
 export default LeaveMissionButton;

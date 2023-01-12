@@ -1,10 +1,10 @@
-import React from 'react'
-import './Button.css'
+import React from 'react';
+import './Button.css';
 
-const JoinMissionButton = props => {
-  const handleClick = e => {
-    props.addhandleClick(e.target)
-  }
+const JoinMissionButton = (props) => {
+  const handleClick = (e) => {
+    props.addhandleClick(e.target);
+  };
 
   return (
     <button
@@ -14,8 +14,7 @@ const JoinMissionButton = props => {
     >
       Join Mission
     </button>
-  )
-}
-
+  );
+};
 
 export default JoinMissionButton;
