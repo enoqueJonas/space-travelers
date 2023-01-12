@@ -3,9 +3,9 @@ import './Button.css'
 
 const Button = props => {
   const handleClick = e => {
-    props.addhandleClick(e.target.id)
+    props.addhandleClick(e.target)
   }
-  
+
   return (
     <button
       className={props.props.type === 'danger' ? 'danger' : 'secondary'}

@@ -5,7 +5,7 @@ import getMissions from '../redux/missions/missions-api'
 import { Table } from 'react-bootstrap'
 import Button from '../components/Button/Button.jsx'
 import Badge from '../components/Badge/Badge.jsx'
-import { missionJoined } from '../redux/missions/missions'
+import { missionJoined, missionLeft } from '../redux/missions/missions'
 
 const Missions = () => {
   const dispatch = useDispatch()
@@ -14,52 +14,57 @@ const Missions = () => {
     dispatch(getMissions())
   }, [])
 
-  const handleClick = (id) => {
-    dispatch(missionJoined(id));
+  const handleClick = target => {
+    if (target.className == 'secondary') {
+      dispatch(missionJoined(target.id))
+    } else {
+      dispatch(missionLeft(target));
+    }
   }
 
   const missions = useSelector(state => state)
+  console.log(missions)
   return (
-   <div className='table-wrapper'>
-     <Table striped responsive>
-      <thead>
-        <tr>
-          <th>Mission</th>
-          <th>Description</th>
-          <th>Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {missions.map((miss, i) => (
+    <div className='table-wrapper'>
+      <Table striped responsive>
+        <thead>
           <tr>
-            <td>{miss.name}</td>
-            <td>{miss.description}</td>
-            <td>
-              <Badge
-                props={
-                  i % 2 === 0
-                    ? { type: 'active-member', text: 'Active Member' }
-                    : { type: 'not-active-member', text: 'Not A Member' }
-                }
-              />
-            </td>
-            <td>
-              <Button
-                props={
-                  i % 2 === 0
-                    ? { type: 'secondary', text: 'Join Mission' }
-                    : { type: 'danger', text: 'Leave Mission' }
-                }
-                id={miss.id}
-                addhandleClick={handleClick}
-              />
-            </td>
+            <th>Mission</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th></th>
           </tr>
-        ))}
-      </tbody>
-    </Table>
-   </div>
+        </thead>
+        <tbody>
+          {missions.map((miss, i) => (
+            <tr>
+              <td>{miss.name}</td>
+              <td>{miss.description}</td>
+              <td>
+                <Badge
+                  props={
+                    i % 2 === 0
+                      ? { type: 'active-member', text: 'Active Member' }
+                      : { type: 'not-active-member', text: 'Not A Member' }
+                  }
+                />
+              </td>
+              <td>
+                <Button
+                  props={
+                    i % 2 === 0
+                      ? { type: 'secondary', text: 'Join Mission' }
+                      : { type: 'danger', text: 'Leave Mission' }
+                  }
+                  id={miss.id}
+                  addhandleClick={handleClick}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </div>
   )
 }
 
