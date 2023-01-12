@@ -5,6 +5,7 @@ import getMissions from '../redux/missions/missions-api'
 import { Table } from 'react-bootstrap'
 import Button from '../components/Button/Button.jsx'
 import Badge from '../components/Badge/Badge.jsx'
+import { missionJoined } from '../redux/missions/missions'
 
 const Missions = () => {
   const dispatch = useDispatch()
@@ -12,6 +13,10 @@ const Missions = () => {
   useEffect(() => {
     dispatch(getMissions())
   }, [])
+
+  const handleClick = (id) => {
+    dispatch(missionJoined(id));
+  }
 
   const missions = useSelector(state => state)
   return (
@@ -46,6 +51,8 @@ const Missions = () => {
                     ? { type: 'secondary', text: 'Join Mission' }
                     : { type: 'danger', text: 'Leave Mission' }
                 }
+                id={miss.id}
+                addhandleClick={handleClick}
               />
             </td>
           </tr>

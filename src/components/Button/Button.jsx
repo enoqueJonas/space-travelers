@@ -1,10 +1,20 @@
-import React from "react";
-import "./Button.css"
+import React from 'react'
+import './Button.css'
 
-const Button = (props) => {
-    return(
-        <button className={props.props.type === 'danger'? "danger" : "secondary"}>{props.props.text}</button>
-    );
+const Button = props => {
+  const handleClick = e => {
+    props.addhandleClick(e.target.id)
+  }
+  
+  return (
+    <button
+      className={props.props.type === 'danger' ? 'danger' : 'secondary'}
+      id={props.id}
+      onClick={handleClick}
+    >
+      {props.props.text}
+    </button>
+  )
 }
 
-export default Button;
+export default Button
