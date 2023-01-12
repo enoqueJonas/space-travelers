@@ -9,9 +9,12 @@ import { missionJoined, missionLeft } from '../redux/missions/missions'
 
 const Missions = () => {
   const dispatch = useDispatch()
+  const missions = useSelector(state => state)
 
   useEffect(() => {
-    dispatch(getMissions())
+    if(missions === []){
+      dispatch(getMissions())
+    }
   }, [])
 
   const handleClick = target => {
@@ -21,10 +24,6 @@ const Missions = () => {
       dispatch(missionLeft(target))
     }
   }
-
-  const missions = useSelector(state => state)
-
-  useEffect(() => {}, [missions])
 
   return (
     <div className='table-wrapper'>
