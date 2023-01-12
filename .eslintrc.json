@@ -11,13 +11,6 @@
     "sourceType": "module"
   },
   "extends": ["airbnb-base"],
-  "settings": {
-    "import/resolver": {
-      "node": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx"]
-      }
-    }
-  },
   "rules": {
     "no-shadow": "off",
     "react/jsx-uses-react": "error",
