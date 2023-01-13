@@ -1,0 +1,67 @@
+body {
+  box-sizing: border-box;
+}
+
+ul {
+  list-style: none;
+}
+
+.nav-bar {
+  display: flex;
+  flex-direction: row;
+  width: 98%;
+  height: 5em;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  width: 25em;
+  gap: 10px;
+}
+
+.logo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-left: 14px;
+}
+
+.nav-title {
+  font-size: 1.8em;
+  color: rgb(0, 0, 0);
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 15em;
+  gap: 10px;
+  margin-right: 10px;
+  margin-bottom: 0;
+}
+
+.nav-link-mine {
+  color: lightskyblue;
+  text-decoration: none;
+  width: 200px;
+  height: 70px;
+  padding: 0;
+}
+
+.nav-missions .active {
+  text-decoration: underline;
+}
+
+.nav-profile .active {
+  text-decoration: underline;
+}
+
+nav .nav-link.active {
+  text-decoration: underline;
+}
