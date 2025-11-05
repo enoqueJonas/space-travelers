@@ -2,36 +2,21 @@ name: Nightly Regression
 
 on:
   schedule:
-    - cron: "1 9 * * *"
-  workflow_dispatch: {}
-
-# Prevent overlapping nightly runs
-concurrency:
-  group: nightly-regression
-  cancel-in-progress: false
+    - cron: "2 0 * * *" # 01:00 UTC daily
+  workflow_dispatch:
 
 jobs:
   regression:
-    name: Regression (${{ matrix.browser }})
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chromium, firefox, webkit]
-
-    permissions:
-      contents: read
-
+    timeout-minutes: 30
     steps:
-      - name: Checkout
+      - name: Checkout tests
         uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Install deps
         run: npm ci
@@ -39,12 +24,17 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run regression tests (@regression)
-        run: >
-          npx playwright test
-          --grep @regression
-          --reporter=html,line
-          --project=${{ matrix.browser }}
+      - name: Run REGRESSION
+        env:
+          BASE_URL: https://spacetravelers-64xw.onrender.com
+        run: npm run test:regression
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report   --project=${{ matrix.browser }}
 
       - name: Upload HTML report
         if: always()
