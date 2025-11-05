@@ -2,7 +2,7 @@ name: Smoke On Staging
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
 
 jobs:
   smoke:
