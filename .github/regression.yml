@@ -1,0 +1,81 @@
+name: Nightly Regression
+
+on:
+  schedule:
+    - cron: "1 9 * * *"
+  workflow_dispatch: {}
+
+# Prevent overlapping nightly runs
+concurrency:
+  group: nightly-regression
+  cancel-in-progress: false
+
+jobs:
+  regression:
+    name: Regression (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run regression tests (@regression)
+        run: >
+          npx playwright test
+          --grep @regression
+          --reporter=html,line
+          --project=${{ matrix.browser }}
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: playwright-report
+          retention-days: 7
+
+      - name: Upload traces / videos (if present)
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-${{ matrix.browser }}
+          path: |
+            test-results
+            playwright-report/data
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Summarize failure in run summary
+        if: failure()
+        run: |
+          {
+            echo "## ❌ Nightly Regression Failed – ${{ matrix.browser }}"
+            echo ""
+            echo "**Repo:** ${{ github.repository }}"
+            echo "**Branch:** ${{ github.ref_name }}"
+            echo "**Commit:** \`${{ github.sha }}\`"
+            echo ""
+            echo "- Open workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "- Download HTML report artifact: \`playwright-report-${{ matrix.browser }}\`"
+            echo "- (If configured) Traces/videos: \`test-artifacts-${{ matrix.browser }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
