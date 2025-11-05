@@ -68,3 +68,46 @@ jobs:
       - name: Check node_modules existence
         run: |
           if [ -d "node_modules/" ]; then echo -e "\e[1;31mThe node_modules/ folder was pushed to the repo. Please remove it from the GitHub repository and try again."; echo -e "\e[1;32mYou can set up a .gitignore file with this folder included on it to prevent this from happening in the future." && exit 1; fi
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout app (this repo)
+        uses: actions/checkout@v4
+
+      - name: Checkout tests repo
+        uses: actions/checkout@v4
+        with:
+          repository: enoqueJonas/demo-e2e-ui-playwright-
+          path: tests
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install tests deps
+        working-directory: tests
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: tests
+        run: npx playwright install --with-deps
+
+      - name: Warm up Render (optional)
+        run: |
+          curl -sS --retry 6 --retry-all-errors --max-time 10 \
+            https://spacetravelers-64xw.onrender.com/ > /dev/null || true
+
+      - name: Run SMOKE tests
+        working-directory: tests
+        env:
+          BASE_URL: https://spacetravelers-64xw.onrender.com
+        run: npm run test:smoke
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/playwright-report
