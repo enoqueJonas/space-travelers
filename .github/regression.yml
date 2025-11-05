@@ -2,7 +2,7 @@ name: Nightly Regression
 
 on:
   schedule:
-    - cron: "2 0 * * *" # 01:00 UTC daily
+    - cron: "2 2 * * *" # 01:00 UTC daily
   workflow_dispatch:
 
 jobs:
