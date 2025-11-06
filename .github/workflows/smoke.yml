@@ -48,14 +48,15 @@ jobs:
         with:
           name: playwright-report
           path: tests/playwright-report
-          
+
       - name: Notify Teams on Failure
-        if: failure()
+        if: steps.tests.outcome == 'failure'
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
-          SUMMARY="🚨 Smoke failed for PR #${{ github.event.pull_request.number }} – ${{ github.event.pull_request.title }}"
-          URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          BRANCH="${{ github.ref_name }}"
+          COMMIT="${{ github.sha }}"
           PAYLOAD=$(cat <<EOF
           {
             "@type": "MessageCard",
@@ -66,17 +67,21 @@ jobs:
             "sections": [{
               "facts": [
                 { "name": "Repo", "value": "${{ github.repository }}" },
-                { "name": "Branch", "value": "${{ github.head_ref || github.ref_name }}" },
-                { "name": "Commit", "value": "${{ github.sha }}" }
+                { "name": "Branch", "value": "${BRANCH}" },
+                { "name": "Commit", "value": "${COMMIT}" }
               ],
-              "text": "${SUMMARY}"
+              "text": "Smoke tests failed. See run: ${RUN_URL}"
             }],
             "potentialAction": [{
               "@type": "OpenUri",
               "name": "View CI Run",
-              "targets": [{ "os": "default", "uri": "${URL}" }]
+              "targets": [{ "os": "default", "uri": "${RUN_URL}" }]
             }]
           }
           EOF
           )
-          curl -H 'Content-Type: application/json' -d "$PAYLOAD" "$TEAMS_WEBHOOK_URL"    
+          curl -H 'Content-Type: application/json' -d "$PAYLOAD" "$TEAMS_WEBHOOK_URL"
+
+      - name: Fail job (if tests failed)
+        if: steps.tests.outcome == 'failure'
+        run: exit 1 
