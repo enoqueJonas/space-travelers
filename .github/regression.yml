@@ -1,71 +1,174 @@
-name: Nightly Regression
+name: Nightly Regression on Staging
 
 on:
   schedule:
-    - cron: "2 2 * * *" # 01:00 UTC daily
+    # Runs at 01:00 UTC daily (03:00 Africa/Maputo, UTC+2).
+    - cron: "0 1 * * *"
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-regression
+  cancel-in-progress: true
 
 jobs:
   regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
+
     steps:
-      - name: Checkout tests
+      - name: Checkout app (this repo)
         uses: actions/checkout@v4
+
+      - name: Checkout tests repo
+        uses: actions/checkout@v4
+        with:
+          repository: enoqueJonas/demo-e2e-ui-playwright-
+          path: tests
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: tests/package-lock.json
 
-      - name: Install deps
+        # Install deps & browsers
+      - name: Install tests deps
+        working-directory: tests
         run: npm ci
 
       - name: Install Playwright browsers
+        working-directory: tests
         run: npx playwright install --with-deps
 
-      - name: Run REGRESSION
+      - name: Warm up staging (optional)
         env:
-          BASE_URL: https://spacetravelers-64xw.onrender.com
-        run: npm run test:regression
+          BASE_URL: ${{ vars.STAGING_BASE_URL }}
+        run: |
+          curl -sS --retry 6 --retry-all-errors --max-time 10 \
+            "${BASE_URL}" > /dev/null || true
 
-      - name: Upload Playwright report
+      - name: Run REGRESSION tests (@regression)
+        id: run_tests
+        shell: bash
+        working-directory: tests
+        env:
+          BASE_URL: ${{ vars.STAGING_BASE_URL }}
+        run: |
+          set -euo pipefail
+          # Run with multiple reporters: list (console), json (for stats), html (nice report)
+          # Pipe JSON to a file while preserving exit code via `tee` + pipefail
+          npx playwright test --grep @regression --reporter=list,json,html | tee results.json
+
+      - name: Extract stats
+        if: always()
+        id: stats
+        shell: bash
+        working-directory: tests
+        run: |
+          # jq is available by default on ubuntu-latest
+          STATUS=$(jq -r '.status' results.json)
+          TOTAL=$(jq -r '.stats.total // .suites[].specs | length' results.json 2>/dev/null || echo 0)
+          EXPECTED=$(jq -r '.stats.expected' results.json)
+          UNEXPECTED=$(jq -r '.stats.unexpected' results.json)
+          SKIPPED=$(jq -r '.stats.skipped' results.json)
+          FLAKY=$(jq -r '.stats.flaky' results.json)
+
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+          echo "expected=$EXPECTED" >> "$GITHUB_OUTPUT"
+          echo "unexpected=$UNEXPECTED" >> "$GITHUB_OUTPUT"
+          echo "skipped=$SKIPPED" >> "$GITHUB_OUTPUT"
+          echo "flaky=$FLAKY" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report   --project=${{ matrix.browser }}
+          path: tests/playwright-report
+          retention-days: 7
 
-      - name: Upload HTML report
+      - name: Add run summary
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-${{ matrix.browser }}
-          path: playwright-report
-          retention-days: 7
-
-      - name: Upload traces / videos (if present)
-        if: failure() || cancelled()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-artifacts-${{ matrix.browser }}
-          path: |
-            test-results
-            playwright-report/data
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: Summarize failure in run summary
-        if: failure()
         run: |
+          echo "## Nightly Regression" >> $GITHUB_STEP_SUMMARY
+          echo "- Env: **staging**" >> $GITHUB_STEP_SUMMARY
+          echo "- URL: \`${{ vars.STAGING_BASE_URL }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: **${{ steps.stats.outputs.status || 'unknown' }}**" >> $GITHUB_STEP_SUMMARY
+          echo "- Total: ${{ steps.stats.outputs.total }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Passed: ${{ steps.stats.outputs.expected }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Failed: ${{ steps.stats.outputs.unexpected }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Skipped: ${{ steps.stats.outputs.skipped }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Flaky: ${{ steps.stats.outputs.flaky }}" >> $GITHUB_STEP_SUMMARY
+          echo "- [Download HTML report](./artifact?name=playwright-report)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Teams on failure
+        if: failure()
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          REPO="${{ github.repository }}"
+          BRANCH="${{ github.ref_name }}"
+          FAILED="${{ steps.stats.outputs.unexpected }}"
+          TOTAL="${{ steps.stats.outputs.total }}"
+          curl -sS -H 'Content-Type: application/json' -d @- "$TEAMS_WEBHOOK_URL" <<JSON
           {
-            echo "## ❌ Nightly Regression Failed – ${{ matrix.browser }}"
-            echo ""
-            echo "**Repo:** ${{ github.repository }}"
-            echo "**Branch:** ${{ github.ref_name }}"
-            echo "**Commit:** \`${{ github.sha }}\`"
-            echo ""
-            echo "- Open workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            echo "- Download HTML report artifact: \`playwright-report-${{ matrix.browser }}\`"
-            echo "- (If configured) Traces/videos: \`test-artifacts-${{ matrix.browser }}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "themeColor": "EA4300",
+            "summary": "Regression failed",
+            "title": "🚨 Nightly Regression failed",
+            "sections": [{
+              "facts": [
+                { "name": "Repo",   "value": "$REPO" },
+                { "name": "Branch", "value": "$BRANCH" },
+                { "name": "Failed", "value": "$FAILED / $TOTAL" }
+              ],
+              "text": "Nightly regression on *staging* failed. See run for details."
+            }],
+            "potentialAction": [{
+              "@type": "OpenUri",
+              "name": "View CI Run",
+              "targets": [{ "os": "default", "uri": "$RUN_URL" }]
+            }]
+          }
+          JSON
+
+      # Optional: notify on success too (comment out if you don't want green pings)
+      - name: Notify Teams on success
+        if: success()
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          REPO="${{ github.repository }}"
+          BRANCH="${{ github.ref_name }}"
+          PASSED="${{ steps.stats.outputs.expected }}"
+          TOTAL="${{ steps.stats.outputs.total }}"
+          curl -sS -H 'Content-Type: application/json' -d @- "$TEAMS_WEBHOOK_URL" <<JSON
+          {
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "themeColor": "2EB886",
+            "summary": "Regression passed",
+            "title": "✅ Nightly Regression passed",
+            "sections": [{
+              "facts": [
+                { "name": "Repo",   "value": "$REPO" },
+                { "name": "Branch", "value": "$BRANCH" },
+                { "name": "Passed", "value": "$PASSED / $TOTAL" }
+              ],
+              "text": "All good on *staging*."
+            }],
+            "potentialAction": [{
+              "@type": "OpenUri",
+              "name": "View CI Run",
+              "targets": [{ "os": "default", "uri": "$RUN_URL" }]
+            }]
+          }
+          JSON
