@@ -8,6 +8,7 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
       - name: Checkout app (this repo)
         uses: actions/checkout@v4
@@ -37,6 +38,7 @@ jobs:
             https://spacetravelers-64xw.onrender.com/ > /dev/null || true
 
       - name: Run SMOKE tests
+        id: run_tests                      # <-- give the step an id
         working-directory: tests
         env:
           BASE_URL: https://spacetravelers-64xw.onrender.com
@@ -49,15 +51,13 @@ jobs:
           name: playwright-report
           path: tests/playwright-report
 
-      - name: Notify Teams on Failure
-        if: steps.tests.outcome == 'failure'
+      - name: Notify Teams on failure
+        if: failure()                      # <-- fires if any prior step failed
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          BRANCH="${{ github.ref_name }}"
-          COMMIT="${{ github.sha }}"
-          PAYLOAD=$(cat <<EOF
+          PAYLOAD=$(cat <<'JSON'
           {
             "@type": "MessageCard",
             "@context": "http://schema.org/extensions",
@@ -66,22 +66,19 @@ jobs:
             "title": "Smoke tests failed",
             "sections": [{
               "facts": [
-                { "name": "Repo", "value": "${{ github.repository }}" },
-                { "name": "Branch", "value": "${BRANCH}" },
-                { "name": "Commit", "value": "${COMMIT}" }
+                { "name": "Repo",   "value": "${{ github.repository }}" },
+                { "name": "Branch", "value": "${{ github.ref_name }}" },
+                { "name": "Commit", "value": "${{ github.sha }}" }
               ],
-              "text": "Smoke tests failed. See run: ${RUN_URL}"
+              "text": "Smoke tests failed. Click **View CI Run** below for details."
             }],
             "potentialAction": [{
               "@type": "OpenUri",
               "name": "View CI Run",
-              "targets": [{ "os": "default", "uri": "${RUN_URL}" }]
+              "targets": [{ "os": "default", "uri": "RUN_URL_REPLACE" }]
             }]
           }
-          EOF
+          JSON
           )
-          curl -H 'Content-Type: application/json' -d "$PAYLOAD" "$TEAMS_WEBHOOK_URL"
-
-      - name: Fail job (if tests failed)
-        if: steps.tests.outcome == 'failure'
-        run: exit 1 
+          PAYLOAD="${PAYLOAD/RUN_URL_REPLACE/$RUN_URL}"
+          curl -sS -H 'Content-Type: application/json' -d "$PAYLOAD" "$TEAMS_WEBHOOK_URL"
