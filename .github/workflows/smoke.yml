@@ -48,3 +48,35 @@ jobs:
         with:
           name: playwright-report
           path: tests/playwright-report
+          
+      - name: Notify Teams on Failure
+        if: failure()
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          SUMMARY="🚨 Smoke failed for PR #${{ github.event.pull_request.number }} – ${{ github.event.pull_request.title }}"
+          URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          PAYLOAD=$(cat <<EOF
+          {
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "themeColor": "EA4300",
+            "summary": "Smoke failed",
+            "title": "Smoke tests failed",
+            "sections": [{
+              "facts": [
+                { "name": "Repo", "value": "${{ github.repository }}" },
+                { "name": "Branch", "value": "${{ github.head_ref || github.ref_name }}" },
+                { "name": "Commit", "value": "${{ github.sha }}" }
+              ],
+              "text": "${SUMMARY}"
+            }],
+            "potentialAction": [{
+              "@type": "OpenUri",
+              "name": "View CI Run",
+              "targets": [{ "os": "default", "uri": "${URL}" }]
+            }]
+          }
+          EOF
+          )
+          curl -H 'Content-Type: application/json' -d "$PAYLOAD" "$TEAMS_WEBHOOK_URL"    
